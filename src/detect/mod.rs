@@ -61,10 +61,11 @@ pub enum Agent {
     Hermes,
     Kilo,
     Qodercli,
+    Mimo,
 }
 
 impl Agent {
-    pub const SCREEN_MANIFEST_AGENTS: [Self; 18] = [
+    pub const SCREEN_MANIFEST_AGENTS: [Self; 19] = [
         Self::Pi,
         Self::Claude,
         Self::Codex,
@@ -83,6 +84,7 @@ impl Agent {
         Self::Hermes,
         Self::Kilo,
         Self::Qodercli,
+        Self::Mimo,
     ];
 }
 
@@ -108,6 +110,7 @@ pub fn agent_label(agent: Agent) -> &'static str {
         Agent::Hermes => "hermes",
         Agent::Kilo => "kilo",
         Agent::Qodercli => "qodercli",
+        Agent::Mimo => "mimo",
     }
 }
 
@@ -134,6 +137,7 @@ pub fn parse_agent_label(agent: &str) -> Option<Agent> {
         "hermes" | "hermes-agent" => Some(Agent::Hermes),
         "kilo" | "kilo-code" | "kilo code" => Some(Agent::Kilo),
         "qodercli" | "qoderclicn" | "qoder" | "qodercn" => Some(Agent::Qodercli),
+        "mimo" | "mimocode" | "mimo-code" => Some(Agent::Mimo),
         _ => None,
     }
 }
@@ -164,6 +168,7 @@ pub fn identify_agent(process_name: &str) -> Option<Agent> {
         "hermes" | "hermes-agent" => Some(Agent::Hermes),
         "kilo" | "kilo-code" | "kilo code" => Some(Agent::Kilo),
         "qodercli" | "qoderclicn" | "qoder" | "qodercn" => Some(Agent::Qodercli),
+        "mimo" | "mimocode" | "mimo-code" => Some(Agent::Mimo),
         _ => None,
     }
 }
@@ -642,6 +647,9 @@ mod tests {
         assert_eq!(identify_agent("hermes-agent"), Some(Agent::Hermes));
         assert_eq!(identify_agent("kilo"), Some(Agent::Kilo));
         assert_eq!(identify_agent("kilo-code"), Some(Agent::Kilo));
+        assert_eq!(identify_agent("mimo"), Some(Agent::Mimo));
+        assert_eq!(identify_agent("mimocode"), Some(Agent::Mimo));
+        assert_eq!(identify_agent("mimo-code"), Some(Agent::Mimo));
     }
 
     #[test]
@@ -667,6 +675,9 @@ mod tests {
         assert_eq!(parse_agent_label("grok-build"), Some(Agent::Grok));
         assert_eq!(parse_agent_label("hermes-agent"), Some(Agent::Hermes));
         assert_eq!(parse_agent_label("kilo-code"), Some(Agent::Kilo));
+        assert_eq!(parse_agent_label("mimo"), Some(Agent::Mimo));
+        assert_eq!(parse_agent_label("mimocode"), Some(Agent::Mimo));
+        assert_eq!(parse_agent_label("mimo-code"), Some(Agent::Mimo));
     }
 
     #[test]
@@ -682,6 +693,7 @@ mod tests {
         assert_eq!(agent_label(Agent::Grok), "grok");
         assert_eq!(agent_label(Agent::Hermes), "hermes");
         assert_eq!(agent_label(Agent::Kilo), "kilo");
+        assert_eq!(agent_label(Agent::Mimo), "mimo");
     }
 
     #[test]

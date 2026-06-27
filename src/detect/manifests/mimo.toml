@@ -1,0 +1,49 @@
+id = "mimo"
+version = "2026.06.27.1"
+min_engine_version = 1
+updated_at = "2026-06-27T00:00:00Z"
+aliases = ["mimocode", "mimo-code"]
+
+# MiMo Code (Xiaomi, https://github.com/XiaomiMiMo/MiMo-Code) is an OpenCode
+# fork. Its TUI reuses OpenCode's structure but renders the footer hint row in
+# vertical columns, so OpenCode's contiguous "esc to interrupt" substring does
+# not survive at common pane widths. These rules are derived from live MiMo
+# Code v0.1.0 pane captures (idle / working / permission states).
+
+# Working: MiMo shows a 🛸 (U+1F6F8) thinking spinner plus an "esc … interrupt"
+# footer affordance only while a turn is running. The spinner is a single glyph
+# that survives column wrapping, so it is the primary signal; the interrupt
+# phrasings are kept as width-dependent fallbacks. herdr's normal working
+# authority is PTY activity; this rule is the visible-chrome fallback.
+[[rules]]
+id = "spinner_working"
+state = "working"
+priority = 110
+region = "whole_recent"
+visible_working = true
+any = [
+  { regex = ['\x{1F6F8}'] },
+  { contains = ["esc to interrupt"] },
+  { contains = ["again to interrupt"] },
+]
+
+# Blocked: the permission dialog renders "△ Permission required" with the
+# "Allow once / Allow always / Reject" actions and an "⇆ select  enter confirm"
+# footer. Match the header, or the action/footer combo as a glyph-robust
+# fallback.
+[[rules]]
+id = "permission_required"
+state = "blocked"
+priority = 300
+region = "whole_recent"
+visible_blocker = true
+any = [
+  { contains = ["Permission required"] },
+  { all = [
+    { contains = ["enter confirm"] },
+    { any = [{ contains = ["⇆ select"] }, { contains = ["Allow once"] }, { contains = ["Reject"] }] },
+  ] },
+]
+
+# Idle needs no rule: with no working/blocked match and a quiet PTY, herdr
+# treats the pane as idle (same as the OpenCode manifest).

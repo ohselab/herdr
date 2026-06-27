@@ -138,6 +138,9 @@ impl AgentSoundOverrides {
             Some(Agent::Hermes) => self.hermes,
             Some(Agent::Kilo) => self.kilo,
             Some(Agent::Qodercli) => self.qodercli,
+            // MiMo Code has no dedicated sound override field yet (same as Omp);
+            // detection support landed first. A per-agent sound can be added later.
+            Some(Agent::Mimo) => AgentSoundSetting::Default,
             None => AgentSoundSetting::Default,
         }
     }

@@ -360,6 +360,57 @@ fn devin_manifest_detects_idle_working_and_blocked_states() {
 }
 
 #[test]
+fn mimo_manifest_detects_idle_working_and_blocked_states() {
+    // Screen excerpts captured live from MiMo Code v0.1.0 panes.
+
+    // Idle: prompt box plus the default footer, no spinner and no interrupt
+    // affordance. MiMo has no dedicated idle rule, so this falls back to idle.
+    let idle = explain(
+        Agent::Mimo,
+        "  ┃  Type your message... (type / for commands)\n  ┃\n  ┃  Build · MiMo Auto（MiMo-V2.5 限免中）\n  ╹▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀\n   tab switch mode   ctrl+p settings   @ attach file   $ subagent   / commands",
+    );
+    assert_eq!(idle.state, AgentState::Idle);
+
+    // Working: the 🛸 (U+1F6F8) thinking spinner is shown only while a turn
+    // runs and survives MiMo's column-wrapped footer, so it is the primary
+    // working signal.
+    let working_spinner = explain(
+        Agent::Mimo,
+        "     ▣  Build · MiMo Auto · 2.9s\n\n   \u{1F6F8}·∙˙·∙          esc   tab switch   ctrl+p\n                    interrupt mode         settings",
+    );
+    assert_eq!(working_spinner.state, AgentState::Working);
+    assert!(working_spinner.visible_working);
+    assert_eq!(
+        working_spinner
+            .matched_rule
+            .as_ref()
+            .map(|rule| rule.id.as_str()),
+        Some("spinner_working")
+    );
+
+    // Working: width-dependent interrupt-hint fallback when the spinner glyph
+    // is not in the captured region.
+    let working_hint = explain(
+        Agent::Mimo,
+        "▣  Build · MiMo Auto\npress esc again to interrupt",
+    );
+    assert_eq!(working_hint.state, AgentState::Working);
+    assert!(working_hint.visible_working);
+
+    // Blocked: the permission dialog header plus its action row.
+    let blocked = explain(
+        Agent::Mimo,
+        "  ┃  △ Permission required\n  ┃    → Edit gate.txt\n  ┃\n  ┃   Allow once   Allow always   Reject\n  ┃\n  ┃  ctrl+f fullscreen  ⇆ select  enter confirm",
+    );
+    assert_eq!(blocked.state, AgentState::Blocked);
+    assert!(blocked.visible_blocker);
+    assert_eq!(
+        blocked.matched_rule.as_ref().map(|rule| rule.id.as_str()),
+        Some("permission_required")
+    );
+}
+
+#[test]
 fn manifest_validation_rejects_unknown_fields_empty_rules_invalid_regions_and_regexes() {
     assert!(parse_manifest(
         r#"
